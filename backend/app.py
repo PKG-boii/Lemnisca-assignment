@@ -1,12 +1,25 @@
-from rag import ingest_documents, retrieve_top_k
+from rag import ingest_documents
+from router import route_query
+from llm import generate_answer
 
+# Build knowledge base
 ingest_documents("docs")
 
-query = "How do I reset my password?"
-results = retrieve_top_k(query, k=3)
+while True:
+    query = input("\nAsk a question (or 'exit'): ")
+    if query.lower() == "exit":
+        break
 
-print("\nTop results:\n")
-for r in results:
-    print(r["source"], "→", r["category"])
-    print(r["text"][:200])
-    print("-----")
+    decision = route_query(query)
+
+    if decision["route"] == "NO_ANSWER":
+        print("\n❌", decision["reason"])
+        continue
+
+    answer = generate_answer(
+        query=query,
+        documents=decision["documents"],
+        model_choice=decision["model"]
+    )
+
+    print("\n✅ Answer:\n", answer)

@@ -28,4 +28,8 @@ def retrieve_top_k(query: str, k: int = 3):
         scored.append((score, item))
 
     scored.sort(key=lambda x: x[0], reverse=True)
-    return [item for _, item in scored[:k]]
+    return [
+    {**item, "score": score}
+    for score, item in scored[:k]
+]
+
