@@ -1,3 +1,5 @@
+from .vector_store import add_chunk, reset_store
+
 import os
 import tiktoken
 from utils import load_pdf, detect_doc_category
@@ -36,6 +38,10 @@ def chunk_text(text: str, chunk_size: int, overlap: int):
 # ---------------- DOCUMENT INGESTION ----------------
 
 def ingest_documents(docs_path="docs"):
+
+    reset_store()
+
+
     documents = []
 
     for filename in os.listdir(docs_path):
@@ -68,6 +74,10 @@ def ingest_documents(docs_path="docs"):
                 chunk_size=cfg["chunk_size"],
                 overlap=cfg["overlap"]
             )
+        
+        for chunk in chunks:
+            add_chunk(chunk, filename, category)
+
 
         documents.append({
             "filename": filename,

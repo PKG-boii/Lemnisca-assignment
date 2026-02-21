@@ -1,6 +1,12 @@
-from rag.ingest import ingest_documents
+from rag import ingest_documents, retrieve_top_k
 
-docs = ingest_documents("docs")
+ingest_documents("docs")
 
-for d in docs:
-    print(d["filename"], d["category"], d["num_chunks"])
+query = "How do I reset my password?"
+results = retrieve_top_k(query, k=3)
+
+print("\nTop results:\n")
+for r in results:
+    print(r["source"], "→", r["category"])
+    print(r["text"][:200])
+    print("-----")
