@@ -1,35 +1,59 @@
+
 from rag import retrieve_top_k
 
-# Tuneable threshold
 SIMILARITY_THRESHOLD = 0.4
 
-def route_query(query: str):
+# ---------------- MODEL ROUTER ----------------
+
+def select_model(query: str, retrieved_docs: list):
     """
-    Decide how the query should be handled.
-    Returns a routing decision dict.
+    Decide which model to use: CHEAP or EXPENSIVE
     """
 
-    # 1️⃣ Retrieve top chunks
+    query_lower = query.lower()
+
+    # 1️⃣ Reasoning keyword heuristic (NEW RULE)
+    reasoning_keywords = ["why", "explain", "compare", "difference", "impact"]
+    if any(k in query_lower for k in reasoning_keywords):
+        return "EXPENSIVE"
+
+    # 2️⃣ Query length heuristic
+    if len(query.split()) > 20:
+        return "EXPENSIVE"
+
+    # 3️⃣ Document category heuristic
+    categories = {doc["category"] for doc in retrieved_docs}
+    if "POLICY" in categories or "TECHNICAL" in categories:
+        return "EXPENSIVE"
+
+    # 4️⃣ Context size heuristic
+    if len(retrieved_docs) > 2:
+        return "EXPENSIVE"
+
+    return "CHEAP"
+
+# ---------------- RELEVANCE + MODEL ROUTER ----------------
+
+def route_query(query: str):
     results = retrieve_top_k(query, k=3)
 
-    # 2️⃣ If nothing was retrieved
     if not results:
         return {
             "route": "NO_ANSWER",
             "reason": "No relevant documents found."
         }
 
-    # 3️⃣ Check similarity score of best match
     top_score = results[0]["score"]
-
     if top_score < SIMILARITY_THRESHOLD:
         return {
             "route": "NO_ANSWER",
             "reason": "Query is unrelated to the document corpus."
         }
 
-    # 4️⃣ Otherwise, use RAG
+    model = select_model(query, results)
+
     return {
         "route": "RAG",
+        "model": model,
         "documents": results
     }
