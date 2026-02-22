@@ -91,6 +91,18 @@ st.progress(evaluation["confidence"])
 st.write(f"{evaluation['confidence']:.2f}")
 
 # ---------------------------------------------------------
+# Evaluator flag status (REQUIRED BY ASSIGNMENT)
+# ---------------------------------------------------------
+st.subheader("🧪 Evaluator Status")
+
+flagged = len(evaluation.get("issues", [])) > 0
+
+if flagged:
+    st.error("⚠️ Evaluator flagged issues with this answer")
+else:
+    st.success("✅ Evaluator did not flag any issues")
+
+# ---------------------------------------------------------
 # Evaluation warnings
 # ---------------------------------------------------------
 issues = evaluation.get("issues", [])
