@@ -8,12 +8,12 @@ def evaluate_answer(query: str, answer: str, documents: list):
     """
 
     # ---------- Generic check: empty / too short ----------
-    # if not answer or len(answer.strip()) < 30:
-    #     return {
-    #         "valid": False,
-    #         "confidence": 0.0,
-    #         "reason": "Answer too short or empty"
-    #     }
+    if not answer or len(answer.strip()) < 30:
+        return {
+            "valid": False,
+            "confidence": 0.0,
+            "reason": "Answer too short or empty"
+        }
 
     # ---------- Generic check: grounding ----------
     context_text = " ".join(doc["text"].lower() for doc in documents)
@@ -22,12 +22,12 @@ def evaluate_answer(query: str, answer: str, documents: list):
         if word in context_text
     )
 
-    # if grounding_hits < 5:
-    #     return {
-    #         "valid": False,
-    #         "confidence": 0.3,
-    #         "reason": "Answer not sufficiently grounded in retrieved documents"
-    #     }
+    if grounding_hits < 5:
+        return {
+            "valid": False,
+            "confidence": 0.3,
+            "reason": "Answer not sufficiently grounded in retrieved documents"
+        }
 
     # ======================================================
     # DOMAIN-SPECIFIC CHECK: Unsupported feature / claim
