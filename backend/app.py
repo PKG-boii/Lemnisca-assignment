@@ -3,7 +3,7 @@ from router import route_query
 from llm import generate_answer
 from evaluator import evaluate_answer
 
-# Build knowledge base (runs once on startup)
+# Build knowledge base once
 ingest_documents("docs")
 
 while True:
@@ -18,12 +18,14 @@ while True:
         print("\n❌", decision["reason"])
         continue
 
-    # LLM generation
-    answer = generate_answer(
+    # LLM call (now returns metadata)
+    result = generate_answer(
         query=query,
         documents=decision["documents"],
         model_choice=decision["model"]
     )
+
+    answer = result["answer"]
 
     # Layer 3: Output evaluation
     evaluation = evaluate_answer(
@@ -37,6 +39,19 @@ while True:
         print("Reason:", evaluation["reason"])
         print("Confidence:", evaluation["confidence"])
         continue
+
+    # Logging (assignment requirement)
+    log_entry = {
+        "query": query,
+        "classification": decision["model"],
+        "model_used": result["model_used"],
+        "tokens_input": result["tokens_input"],
+        "tokens_output": result["tokens_output"],
+        "latency_ms": result["latency_ms"]
+    }
+
+    print("\n📊 ROUTING LOG")
+    print(log_entry)
 
     print(f"\n🟢 Confidence score: {evaluation['confidence']:.2f}")
     print("\n✅ Answer:\n", answer)

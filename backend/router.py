@@ -23,11 +23,22 @@ def select_model(query: str, retrieved_docs: list):
 
     # 3️⃣ Document category heuristic
     categories = {doc["category"] for doc in retrieved_docs}
-    if "POLICY" in categories or "TECHNICAL" in categories:
+
+    technical_reasoning_keywords = [
+
+        "how", "why", "explain", "architecture", "design",
+        "flow", "working", "implementation"
+
+    ]
+
+    if (
+        ("POLICY" in categories or "TECHNICAL" in categories)
+        and any(k in query_lower for k in technical_reasoning_keywords)
+    ):
         return "EXPENSIVE"
 
     # 4️⃣ Context size heuristic
-    if len(retrieved_docs) > 2:
+    if len(retrieved_docs) > 5:
         return "EXPENSIVE"
 
     return "CHEAP"
