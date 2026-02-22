@@ -15,28 +15,22 @@ CHEAP_MODEL = "llama-3.1-8b-instant"
 EXPENSIVE_MODEL = "llama-3.1-8b-instant"
 
 def generate_answer(query, documents, model_choice):
-    MODEL_MAP = {
-        "CHEAP": "llama-3.1-8b-instant",
-        "EXPENSIVE": "llama-3.1-8b-instant"  # free-tier fallback
-    }
+    start = time.time()
 
-    model = MODEL_MAP[model_choice]
+    model = CHEAP_MODEL if model_choice == "CHEAP" else EXPENSIVE_MODEL
 
-    context = "\n".join(doc["text"] for doc in documents)
+    context = "\n\n".join(d["text"] for d in documents)
+
     prompt = f"""
-Use the following documentation to answer the question.
-If the answer is not present, say "I don't know".
+You are a ClearPath documentation assistant.
+Answer ONLY using the documentation below.
 
-Context:
+Documentation:
 {context}
 
 Question:
 {query}
 """
-
-    tokens_input = len(encoding.encode(prompt))
-
-    start = time.time()
 
     response = client.chat.completions.create(
         model=model,
@@ -46,13 +40,10 @@ Question:
 
     latency_ms = int((time.time() - start) * 1000)
 
-    answer = response.choices[0].message.content
-    tokens_output = len(encoding.encode(answer))
-
     return {
-        "answer": answer,
+        "answer": response.choices[0].message.content.strip(),
         "model_used": model,
-        "tokens_input": tokens_input,
-        "tokens_output": tokens_output,
+        "tokens_input": response.usage.prompt_tokens,
+        "tokens_output": response.usage.completion_tokens,
         "latency_ms": latency_ms
     }
